@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    var api_key = `aa4324761ba6a434a3d2fe2c585e03b4`;
+    var req_url = "http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.json"; // json or xml
+
+    function removeTable() {
+      //document.getElementById('demoXML').removeChild(document.getElementById('demoXML').childNodes[0]);
+      document.getElementById('demoJSON').removeChild(document.getElementById('demoJSON').childNodes[0]);
+    }
+
+    function loadData() {
+      var movieNm = document.getElementById('movieNm').value.trim();
+      var openStartDt = document.getElementById('openStartDt').value.trim();
+      var itemPerPage = document.getElementById('itemPerPage').value.trim();
+      var curPage = document.getElementById('curPage').value.trim();
+      movieNm = encodeURI(movieNm);
+
+      // 유효성 검사  
+      //* param값이 잘 넘어오는지 안넘어 오는지 검사하는 듯
+      var form = document.forms['frm'];
+
+      if (form['movieNm'], value.trim() == "") {
+        alert('영화명을 반드시 입력해야 합니다.');
+        form['movieNm'].focus();
+        return;
+      }
+
+      var numPat = /[1-2][0-9][3]/;
+      if (!numPat.test(form['openStartDt'].value.trim())) {
+        alert('유효한 날짜 포맷이 아님니다.');
+        form['openStartDt'].focus();
+        return;
+      }
+
+      var pageNum = form['curPage'].value.trim();
+      if (pageNum < 1) {
+        alert('페이지 번호는 1 이상의 정수이어야 합니다.');
+        form['itemPerPage'].focus();
+        return;
+      }
+
+      //JSON 
+      var url = `http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.json?key=${api_key}&moviNm=${movieNm}&openStartDt=${openStartDt}&itemPerPage%${itemPerPage}&itemPerPage=${curPage}`;
+
+      xhttp = new XMLHttpRequest();
+      xhttp.onreeadystattechange = function () {
+        if (this.readyState == 4 && this.status == 200) { // this는 XMLHttpRequest 객체다.
+          parseJSON(this.responseText);
+        }
+      };
+
+      xhttp.open('GET', url, true);
+      xhttp.send();
+    }
+
+    function parseJSON(jasonText) {
+      var jsonObj = JSON.parse(jsonText);
+
+      var movie = jsonObj.movieListResult.movieList;
+      var i;
+
+      var table = "<tr><th>영화명</th><th>개봉일</th><th>감독</th><th>제작사</th></tr>";
+      for (i = 0; i < movie.length; i++) {
+        table += `<tr>`;
+        table += `<td> ${movie[i].movieNm} </td>`;
+        table += `<td> ${movie[i].movieCd} </td>`;
+        if(movie[i].directors[0] == null) {
+          table += '<td>' + '</td>';
+        } else {
+          var peopleNaanes = "";
+          for(j=0; j<movie[i].directors.length; j++) {
+            peopleNames += movie[i].directors[j].peopleNm + '<br/>';
+          }
+          table += `<td> ${peopleNames} </td>`;
+        }
+        if(movie[i].companys[0] == null) {
+          table += `<td> </td>`;
+        } else {
+          var companyNames = "";
+          for(j=0; j< movie[i].companys.length; j++) {
+            companyNames += movie[i].companys[j].companyNm + '<br/>';
+          }
+          table += `<td> ${companyNames} </td>`;
+        }
+        table += `</tr>`;
+      }//end for
+
+      document.getElementById('demoJSON').innerHTML = table;
+    }
+
+
+    // loadData();
+    // removeTable();
+    // parseJSON();
+  </script>
+</body>
+</html>
